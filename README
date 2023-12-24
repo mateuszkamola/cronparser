@@ -1,0 +1,64 @@
+CronParser
+Simple CLI applications used to print details on times of execution for a single cron line.
+Accepts a single argument in format of standard cron line.
+Argument must have at least 5 spaces being separators for following fields:
+- minute
+- hour
+- day of month
+- month of year
+- day of week
+- command
+Whole string after 5th space is treated as a command, it can have any number of spaces.
+
+Running
+You need Java 17 to build and run this project, due to few methods used that are not present in Java 11.
+After building a jar you can run it from command line like this:
+$ java -jar cron_parser-1.0.jar "*/15 0-8,17-23 * * 1-5 /usr/bin/ls -l"
+
+Important: Whole cron string must be surrounded with quotes to be passed as single argument.
+
+Application will return exit code 0 on success and print table with description of execution times.
+Example:
+$ java -jar cron_parser-1.0.jar "*/15 0-8,17-23 * * 1-5 /usr/bin/ls -l"
+minute        0 15 30 45
+hour          0 1 2 3 4 5 6 7 8 17 18 19 20 21 22 23
+day of month  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+month         1 2 3 4 5 6 7 8 9 10 11 12
+day of week   1 2 3 4 5
+command       /usr/bin/ls -l
+$ echo $?
+0
+
+Exit code other than 0 indicates that there was an error during execution.
+Example:
+$ java -jar build/libs/cron_parser-1.0.jar "*/15 /usr/bin/ls"
+Error while parsing input line. Input line must have 6 values separated by space.
+Usage:
+	java -jar cron_parser-1.0.jar "* * * * * /bin/ls -l"
+$ echo $?
+ 2
+
+Exit codes:
+0 - success
+1 - incorrect number of arguments passed (other than 1)
+2 - error when parsing input string
+
+Building
+Install JDK for Java 17 using your favorite package manager (or download and setup binaries from jdk.java.net/archive).
+With Java 17 JDK set up simply run gradle task 'jar' using gradle-wrapper to build the jar.
+Gradle will download needed dependencies, build jar and put it into build/libs.
+After jar is created you can simply run it passing cron line as first and only argument (remember about quotes!).
+Example:
+$ ./gradlew jar
+...
+$ java -jar cron_parser-1.0.jar "*/15 0-8,17-23 * * 1-5 /usr/bin/ls -l"
+
+How it works
+Input string is split by spaces into 6 chunks. Everything after 5th space is treated as a command.
+Current implementation supports 5 cron time fields passed in order: minute, hour, day of month, month, day of week.
+Adding new fields is easy and requires only creation of new CronTimeDescriptor that describes name and possible range of values and adding it to the list in CronParser class.
+For sake of simplicity current list of CronTimeDescriptors is hardcoded, but it may be good idea to extra it into configuration file if the list will change often.
+Strings describing expected values for each cron time field are parsed as follows:
+- each string is treated as list of values - if there is no comma it means that the list will have only 1 element
+- each value is parsed into IntValueRange resulting in list of IntValueRanges assigned to each cron time field
+- final list of possible values is achieved by merging values provided by each of IntValueRange in list for given field

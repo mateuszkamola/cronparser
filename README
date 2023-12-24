@@ -53,7 +53,7 @@ $ ./gradlew jar
 ...
 $ java -jar cron_parser-1.0.jar "*/15 0-8,17-23 * * 1-5 /usr/bin/ls -l"
 
-How it works
+How it works (briefly)
 Input string is split by spaces into 6 chunks. Everything after 5th space is treated as a command.
 Current implementation supports 5 cron time fields passed in order: minute, hour, day of month, month, day of week.
 Adding new fields is easy and requires only creation of new CronTimeDescriptor that describes name and possible range of values and adding it to the list in CronParser class.
